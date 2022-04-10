@@ -1,0 +1,70 @@
+version: "3"
+services:
+  react-app:
+    image: node:fermium-buster
+    restart: always
+    env_file:
+      - ./.env
+    depends_on:
+      - express-api
+      - redis-cache
+    environment:
+      - NODE_ENV=development
+    working_dir: /app
+    command: "yarn start"
+    ports:
+      - ${APP_PORT}:3000
+    links:
+      - express-api
+      - redis-cache
+    volumes:
+      - ./${APP_DIR}:/app
+  express-api:
+    image: node:fermium-buster
+    restart: always
+    env_file:
+      - ./.env
+    depends_on:
+      - mongo
+      - redis-cache
+    environment:
+      - NODE_ENV=development
+    working_dir: /app
+    command: "yarn start"
+    ports:
+      - ${API_PORT}:3000
+    links:
+      - mongo
+      - redis-cache
+    volumes:
+      - ./${API_DIR}:/app
+  redis-cache:
+    image: redis
+    restart: always
+    volumes:
+      - ./${REDIS_DIR}/conf:/usr/local/etc/redis
+      - ./${REDIS_DIR}/log:/usr/local/etc/redis_log
+    command: "redis-server /usr/local/etc/redis/redis.conf"
+    ports:
+      - ${REDIS_PORT}:6379
+  mongo:
+    image: mongo
+    restart: always
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: root
+      MONGO_INITDB_ROOT_PASSWORD: ${DB_ROOT_PASS}
+    volumes:
+      - ./${DATA_DIR}:/data/db
+  mongo-express:
+    image: mongo-express
+    restart: always
+    ports:
+      - 8081:8081
+    environment:
+      ME_CONFIG_MONGODB_ADMINUSERNAME: root
+      ME_CONFIG_MONGODB_ADMINPASSWORD: ${DB_ROOT_PASS}
+      ME_CONFIG_MONGODB_URL: mongodb://root:${DB_ROOT_PASS}@mongo:27017/
+    links:
+      - mongo
+    depends_on:
+      - mongo
