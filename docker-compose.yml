@@ -38,6 +38,7 @@ services:
       - redis-cache
     volumes:
       - ./${API_DIR}:/app
+      - ./${API_DIR}/sysctl.conf:/etc/sysctl.conf
   redis-cache:
     image: redis
     restart: always
