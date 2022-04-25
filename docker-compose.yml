@@ -5,12 +5,12 @@ services:
     restart: always
     env_file:
       - ./.env
+    working_dir: /app
     depends_on:
       - express-api
       - redis-cache
     environment:
       - NODE_ENV=development
-    working_dir: /app
     command: "yarn start"
     ports:
       - ${APP_PORT}:3000
@@ -19,6 +19,7 @@ services:
       - redis-cache
     volumes:
       - ./${APP_DIR}:/app
+      - ./${API_DIR}/sysctl.conf:/etc/sysctl.conf
   express-api:
     image: node:fermium-buster
     restart: always
